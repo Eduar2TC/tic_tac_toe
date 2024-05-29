@@ -1,10 +1,57 @@
+import 'dart:async';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:tic_tac_toe/screens/game/custom_widgets/btn_creator.dart';
 import 'package:tic_tac_toe/screens/game/custom_widgets/button.dart';
 import 'package:tic_tac_toe/screens/game/custom_widgets/title_board.dart';
+import 'package:tic_tac_toe/screens/game/ia_logic/game_logic.dart';
 import 'package:tic_tac_toe/utils/element_drawer.dart';
+import 'package:tic_tac_toe/utils/winning_line_painter.dart';
 
-class Game extends StatelessWidget {
+import 'ia_logic/ia_game.dart';
+
+class Game extends StatefulWidget {
   const Game({super.key});
+
+  @override
+  State<Game> createState() => _GameState();
+}
+
+class _GameState extends State<Game> {
+  final Map<int, GlobalKey<BtnCreatorState>> buttonKeys = {};
+  final List<ValueNotifier<Figure>> _buttonNotifiers =
+      List.generate(9, (_) => ValueNotifier(Figure.empty));
+  final GameLogic gameLogic = GameLogic();
+
+  void updateBoard(int index, int player) {
+    // Update the game board
+    gameLogic.board[index ~/ 3][index % 3] = player;
+    log('Board updated by ${player == 1 ? 'player' : 'AI'}: $gameLogic.board');
+  }
+
+  void playerMove(int index) {
+    log('playerMove called. index: $index');
+    gameLogic.updateBoard(index, 1);
+    _buttonNotifiers[index].value = Figure.cross;
+    if (gameLogic.isMovesLeft()) {
+      Move bestMove = gameLogic.findBestMove();
+      int aiIndex = bestMove.row * 3 + bestMove.col;
+      aiMove(aiIndex);
+    }
+  }
+
+  void aiMove(int index) {
+    if (gameLogic.board[index ~/ 3][index % 3] == 0) {
+      gameLogic.updateBoard(index, -1);
+      Future.delayed(const Duration(milliseconds: 500), () {
+        setState(() {
+          _buttonNotifiers[index].value = Figure.circle;
+        });
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
@@ -29,16 +76,39 @@ class Game extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               TitleBoard(width: width, height: height),
-              GridView.builder(
-                shrinkWrap: true,
-                itemCount: 9,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                ),
-                itemBuilder: (BuildContext context, int index) {
-                  //element of grid
-                  return BtnCreator(width: width, height: height, index: index);
-                },
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  GridView.builder(
+                    shrinkWrap: true,
+                    itemCount: 9,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                    ),
+                    itemBuilder: (BuildContext context, int index) {
+                      buttonKeys[index] = GlobalKey<BtnCreatorState>();
+                      //element of grid
+                      return BtnCreator(
+                        key: buttonKeys[index],
+                        width: width,
+                        height: height,
+                        index: index,
+                        figureNotifier: _buttonNotifiers[index],
+                        onPress: () {
+                          playerMove(index);
+                          log(gameLogic.board.toString());
+                        },
+                      );
+                    },
+                  ),
+                  IgnorePointer(
+                    child: CustomPaint(
+                      size: Size(width, height / 2),
+                      painter: WinningLinePainter(start: 1, end: 7),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(
                 height: height / 20,
@@ -60,82 +130,6 @@ class Game extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class BtnCreator extends StatefulWidget {
-  const BtnCreator({
-    super.key,
-    required this.width,
-    required this.height,
-    required this.index,
-  });
-
-  final double width;
-  final double height;
-  final int index;
-
-  @override
-  BtnCreatorState createState() => BtnCreatorState();
-}
-
-class BtnCreatorState extends State<BtnCreator> {
-  final ValueNotifier<Figure> _figureNotifier =
-      ValueNotifier<Figure>(Figure.empty);
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<Figure>(
-      valueListenable: _figureNotifier,
-      builder: (context, figure, child) {
-        return buildButton(
-          figure: figure,
-          rightBorder:
-              widget.index != 2 && widget.index != 5 && widget.index != 8,
-          bottomBorder: widget.index < 6,
-        );
-      },
-    );
-  }
-
-  Widget buildButton({
-    required Figure figure,
-    bool rightBorder = true,
-    bool bottomBorder = true,
-  }) {
-    return Container(
-      width: widget.width / 3,
-      height: widget.height / 3,
-      decoration: BoxDecoration(
-        border: Border(
-          right: rightBorder
-              ? const BorderSide(color: Colors.white, width: 10)
-              : BorderSide.none,
-          bottom: bottomBorder
-              ? const BorderSide(color: Colors.white, width: 10)
-              : BorderSide.none,
-        ),
-      ),
-      child: TextButton(
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(0),
-          ),
-          backgroundColor: Colors.transparent,
-        ),
-        onPressed: () {
-          _figureNotifier.value = _figureNotifier.value == Figure.empty
-              ? Figure.cross
-              : Figure.empty;
-        },
-        child: CustomPaint(
-          painter: ElementDrawer(size: 100, figure: figure),
-          size: const Size(100, 100),
-          isComplex: true,
-          willChange: true,
         ),
       ),
     );
