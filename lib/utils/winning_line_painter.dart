@@ -3,11 +3,15 @@ import 'package:flutter/material.dart';
 class WinningLinePainter extends CustomPainter {
   final int start;
   final int end;
+  final Animation<double> animation;
 
-  WinningLinePainter({required this.start, required this.end});
+  WinningLinePainter(
+      {required this.start, required this.end, required this.animation})
+      : super(repaint: animation);
 
   @override
   void paint(Canvas canvas, Size size) {
+    final double progress = animation.value;
     final paint = Paint()
       ..color = Colors.purpleAccent
       ..shader = const LinearGradient(
@@ -20,7 +24,12 @@ class WinningLinePainter extends CustomPainter {
     final endOffset = Offset((end % 3) * size.width / 3 + size.width / 6,
         (end ~/ 3) * size.height / 3 + size.height / 6);
 
-    canvas.drawLine(startOffset, endOffset, paint);
+    final midOffset = Offset(
+      startOffset.dx + (endOffset.dx - startOffset.dx) * progress,
+      startOffset.dy + (endOffset.dy - startOffset.dy) * progress,
+    );
+
+    canvas.drawLine(startOffset, midOffset, paint);
   }
 
   @override

@@ -167,6 +167,11 @@ class GameIA {
 
     return bestMove;
   }
+
+// This will return true if the game is over
+  bool isGameOver(List<List<int>> board) {
+    return evaluate(board) != 0 || !isMovesLeft(board);
+  }
 }
 
 class Move {

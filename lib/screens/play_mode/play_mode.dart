@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tic_tac_toe/screens/game/custom_widgets/button.dart';
 import 'package:tic_tac_toe/utils/element_drawer.dart';
+import 'package:tic_tac_toe/utils/figures.dart';
 
 class PlayMode extends StatelessWidget {
   const PlayMode({super.key});

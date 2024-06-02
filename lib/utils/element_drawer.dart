@@ -1,12 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-
-enum Figure {
-  cross,
-  circle,
-  empty,
-}
+import 'package:tic_tac_toe/utils/figures.dart';
 
 class ElementDrawer extends CustomPainter {
   final double size;

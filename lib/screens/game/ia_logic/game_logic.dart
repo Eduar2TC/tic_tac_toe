@@ -18,4 +18,8 @@ class GameLogic {
   Move findBestMove() {
     return ia.findBestMove(board);
   }
+
+  bool isGameOver() {
+    return ia.isGameOver(board);
+  }
 }

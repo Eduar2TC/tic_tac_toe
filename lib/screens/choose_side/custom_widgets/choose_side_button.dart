@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tic_tac_toe/utils/element_drawer.dart';
+import 'package:tic_tac_toe/utils/figures.dart';
 
 class ChooseSideButton extends StatelessWidget {
   final Figure figure;

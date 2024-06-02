@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:tic_tac_toe/screens/choose_side/custom_widgets/choose_side_button.dart';
 import 'package:tic_tac_toe/screens/game/custom_widgets/button.dart';
-import 'package:tic_tac_toe/utils/element_drawer.dart';
+import 'package:tic_tac_toe/utils/figures.dart';
 
 class ChooseSide extends StatefulWidget {
   const ChooseSide({super.key});
@@ -14,10 +14,26 @@ class ChooseSide extends StatefulWidget {
 class _ChooseSideState extends State<ChooseSide> {
   bool isButtonOTapped = false;
   bool isButtonXTapped = false;
+
+  late Figure figure; // user's chosen figure
+  Color buttonBorderColor = Colors.white;
+  @override
+  void initState() {
+    super.initState();
+    figure = Figure.empty;
+  }
+
+  void changeBorderColor(Color color) {
+    setState(() {
+      buttonBorderColor = color;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
     final double height = MediaQuery.of(context).size.height;
+
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.all(20),
@@ -53,6 +69,10 @@ class _ChooseSideState extends State<ChooseSide> {
                 onTap: () {
                   setState(() {
                     isButtonOTapped = !isButtonOTapped;
+                    isButtonOTapped
+                        ? figure = Figure.circle
+                        : figure = Figure.empty;
+                    //deactivate buttonX button
                     if (isButtonXTapped) isButtonXTapped = false;
                   });
                 },
@@ -66,6 +86,10 @@ class _ChooseSideState extends State<ChooseSide> {
                 onTap: () {
                   setState(() {
                     isButtonXTapped = !isButtonXTapped;
+                    isButtonXTapped
+                        ? figure = Figure.cross
+                        : figure = Figure.empty;
+                    //deactivate buttonO button
                     if (isButtonOTapped) isButtonOTapped = false;
                   });
                 },
@@ -76,11 +100,22 @@ class _ChooseSideState extends State<ChooseSide> {
               Button(
                 fontColor: Colors.white,
                 backgroundColor: Colors.transparent,
-                borderColor: Colors.white,
+                borderColor: buttonBorderColor,
                 text: 'Start game',
-                onPressed: () {
-                  Navigator.pushNamed(context, '/game');
-                },
+                onPressed: figure == Figure.cross || figure == Figure.circle
+                    ? () {
+                        changeBorderColor(Colors.white);
+                        log('figure: $figure');
+                        Navigator.pushNamed(
+                          context,
+                          '/game',
+                          arguments: figure,
+                        );
+                      }
+                    : () {
+                        null;
+                        changeBorderColor(Colors.red);
+                      },
               ),
             ],
           ),

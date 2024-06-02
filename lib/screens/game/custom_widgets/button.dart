@@ -57,7 +57,7 @@ class _ButtonState extends State<Button> {
           shape: WidgetStateProperty.all(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: Colors.white, width: 1),
+              side: BorderSide(color: widget.borderColor, width: 1),
             ),
           ),
         ),

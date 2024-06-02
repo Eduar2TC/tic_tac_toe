@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tic_tac_toe/utils/element_drawer.dart';
+import 'package:tic_tac_toe/screens/game/custom_widgets/game_button.dart';
+import 'package:tic_tac_toe/utils/figures.dart';
 
 class BtnCreator extends StatefulWidget {
   const BtnCreator({
@@ -39,6 +40,7 @@ class BtnCreatorState extends State<BtnCreator> {
       valueListenable: widget.figureNotifier,
       builder: (context, figure, _) {
         return GameButton(
+          key: ValueKey(figure),
           width: widget.width,
           height: widget.height,
           figure: figure,
@@ -48,58 +50,6 @@ class BtnCreatorState extends State<BtnCreator> {
           onPress: widget.onPress ?? () {},
         );
       },
-    );
-  }
-}
-
-class GameButton extends StatelessWidget {
-  final Figure figure;
-  final bool rightBorder;
-  final bool bottomBorder;
-  final double width;
-  final double height;
-  final VoidCallback onPress;
-
-  const GameButton({
-    super.key,
-    required this.figure,
-    this.rightBorder = true,
-    this.bottomBorder = true,
-    required this.width,
-    required this.height,
-    required this.onPress,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width / 3,
-      height: height / 3,
-      decoration: BoxDecoration(
-        border: Border(
-          right: rightBorder
-              ? const BorderSide(color: Colors.white, width: 10)
-              : BorderSide.none,
-          bottom: bottomBorder
-              ? const BorderSide(color: Colors.white, width: 10)
-              : BorderSide.none,
-        ),
-      ),
-      child: TextButton(
-        style: ElevatedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(0),
-          ),
-          backgroundColor: Colors.transparent,
-        ),
-        onPressed: onPress,
-        child: CustomPaint(
-          painter: ElementDrawer(size: 100, figure: figure),
-          size: const Size(100, 100),
-          isComplex: true,
-          willChange: true,
-        ),
-      ),
     );
   }
 }
