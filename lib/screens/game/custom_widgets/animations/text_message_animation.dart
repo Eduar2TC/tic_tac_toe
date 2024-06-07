@@ -34,16 +34,19 @@ class _TextMessageState extends State<TextMessage>
         });
       }
     });
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      _controller.forward();
+    });
     super.initState();
   }
 
-  @override
+  /*@override
   void didChangeDependencies() {
     Future.delayed(const Duration(milliseconds: 500), () {
       _controller.forward();
     });
     super.didChangeDependencies();
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -52,15 +55,17 @@ class _TextMessageState extends State<TextMessage>
       builder: (context, _) {
         return Transform.scale(
           scale: _animation.value,
-          child: Text(widget.message,
-              style: GoogleFonts.seymourOne(
-                textStyle: TextStyle(
-                  fontSize: widget.fontSize,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: .2,
-                ),
-              )),
+          child: Text(
+            widget.message,
+            style: GoogleFonts.seymourOne(
+              textStyle: TextStyle(
+                fontSize: widget.fontSize,
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                letterSpacing: .2,
+              ),
+            ),
+          ),
         );
       },
     );

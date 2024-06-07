@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:tic_tac_toe/screens/game/custom_widgets/btn_creator.dart';
 import 'package:tic_tac_toe/screens/game/custom_widgets/button.dart';
+import 'package:tic_tac_toe/screens/game/custom_widgets/game_over_message.dart';
 import 'package:tic_tac_toe/screens/game/custom_widgets/title_board.dart';
 import 'package:tic_tac_toe/screens/game/ia_logic/game_logic.dart';
 import 'package:tic_tac_toe/utils/figures.dart';
@@ -31,12 +32,16 @@ class _GameState extends State<Game> {
   final GameLogic gameLogic = GameLogic();
   late Figure userFigure;
   late Figure iaFigure;
-  late Turn turn; // turn of the player
-  late int playerTurnsWon = 0;
-  late int iaTurnsWon = 0;
   late final ValueNotifier<WinningLine?> _winningLineNotifier =
       ValueNotifier<WinningLine?>(
           null); // ValueNotifier to notify the winning line
+
+  late ValueNotifier<Turn> turn; // turn of the player
+  late final ValueNotifier<int> _playerTurnsWon = ValueNotifier<int>(0);
+  late final ValueNotifier<int> _iaTurnsWon = ValueNotifier<int>(0);
+  final notifierGameOver = ValueNotifier<bool>(false);
+  bool isFirstGame = true;
+  bool playerWinner = false;
 
   @override
   void didChangeDependencies() {
@@ -47,18 +52,25 @@ class _GameState extends State<Game> {
 
   @override
   void initState() {
-    turn = math.Random().nextInt(2) == 0 ? Turn.userPlayer : Turn.iaPlayer;
+    if (isFirstGame) {
+      turn = ValueNotifier<Turn>(isFirstGame && math.Random().nextInt(2) == 0
+          ? Turn.userPlayer
+          : Turn.iaPlayer);
+    }
     Future.delayed(
       const Duration(milliseconds: 1500),
       () {
-        decideTurn();
+        if (isFirstGame) {
+          decideTurn();
+          isFirstGame = !isFirstGame;
+        }
       },
     );
     super.initState();
   }
 
   void decideTurn() {
-    turn == Turn.iaPlayer ? iaTurn() : null;
+    turn.value == Turn.iaPlayer ? iaTurn() : null;
   }
 
   void iaTurn() {
@@ -76,9 +88,16 @@ class _GameState extends State<Game> {
   void restartGame() {
     // Reset the game board
     gameLogic.board = List.generate(3, (_) => List.filled(3, 0));
-    _winningLineNotifier.value = null;
     for (int i = 0; i < 9; i++) {
       _buttonNotifiers[i].value = Figure.empty;
+    }
+    _winningLineNotifier.value = null;
+    notifierGameOver.value = false;
+    if (playerWinner) {
+      turn.value = Turn.iaPlayer;
+      iaTurn();
+    } else {
+      turn.value = Turn.userPlayer;
     }
   }
 
@@ -100,7 +119,12 @@ class _GameState extends State<Game> {
         log('Winning line starts at ${winningLine.start} and ends at ${winningLine.end}');
         Future.delayed(const Duration(milliseconds: 500), () {
           _winningLineNotifier.value = winningLine;
+          _playerTurnsWon.value++;
         });
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          notifierGameOver.value = true;
+        });
+        playerWinner = true;
       }
     } else if (gameLogic.isMovesLeft()) {
       Move bestMove = gameLogic.findBestMove();
@@ -123,7 +147,12 @@ class _GameState extends State<Game> {
         log('Winning line starts at ${winningLine.start} and ends at ${winningLine.end}');
         Future.delayed(const Duration(milliseconds: 1200), () {
           _winningLineNotifier.value = winningLine;
+          _iaTurnsWon.value++;
         });
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          notifierGameOver.value = true;
+        });
+        playerWinner = false;
       }
     }
   }
@@ -170,7 +199,12 @@ class _GameState extends State<Game> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              TitleBoard(width: width, height: height),
+              TitleBoard(
+                width: width,
+                height: height,
+                playerTurnsWon: _playerTurnsWon,
+                iaTurnsWon: _iaTurnsWon,
+              ),
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -202,17 +236,36 @@ class _GameState extends State<Game> {
                   ),
                   buildWinnerLine(width, height),
                   Positioned(
-                      left: width * 0.13,
-                      top: height * 0.01,
-                      child: turn == Turn.userPlayer
-                          ? const TextMessage(
-                              message: '!Tu turno!',
-                              fontSize: 45,
-                            )
-                          : const TextMessage(
-                              message: '!Empezo el juego!',
-                              fontSize: 30,
-                            )),
+                    left: width * 0.10,
+                    top: height * 0.01,
+                    child: ValueListenableBuilder(
+                      valueListenable: turn,
+                      builder: (context, Turn value, _) {
+                        return value == Turn.userPlayer
+                            ? const TextMessage(
+                                key: Key('userTurn'),
+                                message: '!Your turn!',
+                                fontSize: 45,
+                              )
+                            : const TextMessage(
+                                key: Key('iaTurn'),
+                                message: '!The game is started!',
+                                fontSize: 25,
+                              );
+                      },
+                    ),
+                  ),
+                  ValueListenableBuilder(
+                    valueListenable: notifierGameOver,
+                    builder: (context, gameOver, _) => gameOver
+                        ? GameOverMessage(
+                            //add emoji to the message
+                            message: playerWinner
+                                ? '¡You Win! 🏆'
+                                : '¡You Loose! 😞',
+                          )
+                        : Container(),
+                  ),
                 ],
               ),
               SizedBox(
@@ -231,8 +284,8 @@ class _GameState extends State<Game> {
                 height: height / 50,
               ),
               Button(
-                fontColor: Colors.deepPurple,
-                backgroundColor: Colors.white,
+                fontColor: Colors.white,
+                backgroundColor: Colors.transparent,
                 borderColor: Colors.white,
                 text: 'End game',
                 onPressed: () {

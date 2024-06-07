@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:tic_tac_toe/screens/game/custom_widgets/animations/value_text_animation.dart';
 
 class TitleBoard extends StatelessWidget {
   const TitleBoard({
     super.key,
     required this.width,
     required this.height,
+    required this.playerTurnsWon,
+    required this.iaTurnsWon,
   });
 
   final double width;
   final double height;
+  final ValueNotifier<int> playerTurnsWon;
+  final ValueNotifier<int> iaTurnsWon;
 
   @override
   Widget build(BuildContext context) {
@@ -34,16 +39,9 @@ class TitleBoard extends StatelessWidget {
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.values[5],
-            children: const [
-              Text(
-                '0',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              Text(
+            children: [
+              ValueTextAnimation(valueNotifier: playerTurnsWon),
+              const Text(
                 '-',
                 style: TextStyle(
                   fontSize: 20,
@@ -51,14 +49,7 @@ class TitleBoard extends StatelessWidget {
                   color: Colors.black,
                 ),
               ),
-              Text(
-                '1',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              )
+              ValueTextAnimation(valueNotifier: iaTurnsWon),
             ],
           ),
         ),

@@ -23,11 +23,14 @@ class FigureAnimationWidgetState extends State<FigureAnimationWidget>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 700),
-    )..forward();
+    );
     _animation = CurvedAnimation(
       parent: _controller,
       curve: Curves.fastEaseInToSlowEaseOut,
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _controller.forward();
+    });
   }
 
   @override
