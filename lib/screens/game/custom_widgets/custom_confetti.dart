@@ -22,7 +22,31 @@ class _CustomConfettiState extends State<CustomConfetti> {
 
   @override
   Widget build(BuildContext context) {
-    final randomParticles = Random().nextInt(50) + 10;
+    final randomParticles = Random().nextInt(40) + 10;
+    final starsPath = Path()
+      ..moveTo(0, 0)
+      ..lineTo(10, 10)
+      ..lineTo(20, 10)
+      ..lineTo(12, 20)
+      ..lineTo(15, 30)
+      ..lineTo(0, 24)
+      ..lineTo(-15, 30)
+      ..lineTo(-12, 20)
+      ..lineTo(-20, 10)
+      ..lineTo(-10, 10)
+      ..close();
+    final circlePath = Path()
+      ..addOval(Rect.fromCircle(center: const Offset(0, 0), radius: 10));
+    final squarePath = Path()
+      ..addRect(
+          Rect.fromCenter(center: const Offset(0, 0), width: 20, height: 20));
+
+    //random path
+    final randomPath = Random().nextBool()
+        ? starsPath
+        : Random().nextBool()
+            ? circlePath
+            : squarePath;
     return ConfettiWidget(
       confettiController: _confettiController,
       blastDirectionality: BlastDirectionality.explosive,
@@ -33,21 +57,10 @@ class _CustomConfettiState extends State<CustomConfetti> {
       numberOfParticles: randomParticles,
       gravity: 0.1,
       particleDrag: 0.05,
-      /*createParticlePath: (size) {
-        //draw star is too slow
-        return Path()
-          ..moveTo(size.width / 2, size.height / 2)
-          ..lineTo(size.width / 2 + 10, size.height / 2 + 10)
-          ..lineTo(size.width / 2 + 20, size.height / 2 + 10)
-          ..lineTo(size.width / 2 + 12, size.height / 2 + 20)
-          ..lineTo(size.width / 2 + 15, size.height / 2 + 30)
-          ..lineTo(size.width / 2, size.height / 2 + 24)
-          ..lineTo(size.width / 2 - 15, size.height / 2 + 30)
-          ..lineTo(size.width / 2 - 12, size.height / 2 + 20)
-          ..lineTo(size.width / 2 - 20, size.height / 2 + 10)
-          ..lineTo(size.width / 2 - 10, size.height / 2 + 10)
-          ..close();
-      },*/
+      createParticlePath: (size) {
+        //draw path
+        return randomPath;
+      },
       colors: const [
         Colors.blue,
         Colors.red,

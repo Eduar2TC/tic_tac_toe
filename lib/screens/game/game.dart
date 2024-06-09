@@ -39,10 +39,11 @@ class _GameState extends State<Game> {
   late ValueNotifier<Turn> turn; // turn of the player
   late final ValueNotifier<int> _playerTurnsWon = ValueNotifier<int>(0);
   late final ValueNotifier<int> _iaTurnsWon = ValueNotifier<int>(0);
-  final notifierGameOver = ValueNotifier<bool>(false);
+  late final notifierGameOver = ValueNotifier<bool>(false);
   bool isFirstGame = true;
   bool playerWinner = false;
-
+  //handle the progress of the game
+  final ValueNotifier<bool> isProgressRunning = ValueNotifier(false);
   @override
   void didChangeDependencies() {
     userFigure = ModalRoute.of(context)?.settings.arguments as Figure;
@@ -66,6 +67,10 @@ class _GameState extends State<Game> {
         }
       },
     );
+    // Listen time progress if it ends , TODO: fix interaction
+    isProgressRunning.addListener(() {
+      notifierGameOver.value = !isProgressRunning.value;
+    });
     super.initState();
   }
 
@@ -93,6 +98,7 @@ class _GameState extends State<Game> {
     }
     _winningLineNotifier.value = null;
     notifierGameOver.value = false;
+    isProgressRunning.value = true;
     if (playerWinner) {
       turn.value = Turn.iaPlayer;
       iaTurn();
@@ -204,6 +210,7 @@ class _GameState extends State<Game> {
                 height: height,
                 playerTurnsWon: _playerTurnsWon,
                 iaTurnsWon: _iaTurnsWon,
+                isProgressRunning: isProgressRunning,
               ),
               Stack(
                 alignment: Alignment.center,
@@ -218,20 +225,28 @@ class _GameState extends State<Game> {
                     itemBuilder: (BuildContext context, int index) {
                       buttonKeys[index] = GlobalKey<BtnCreatorState>();
                       //element of grid
-                      return BtnCreator(
-                        key: buttonKeys[index],
-                        width: width,
-                        height: height,
-                        index: index,
-                        figureNotifier: _buttonNotifiers[index],
-                        onPress: () {
-                          // Check if the game is not over before making a player user move
-                          if (!gameLogic.isGameOver()) {
-                            playerMove(index);
-                            //log(gameLogic.board.toString());
-                          }
-                        },
-                      );
+                      return ValueListenableBuilder(
+                          valueListenable: isProgressRunning,
+                          builder: (context, isRunning, _) {
+                            return IgnorePointer(
+                              ignoring:
+                                  !isRunning, //ignore if the progress is not running
+                              child: BtnCreator(
+                                key: buttonKeys[index],
+                                width: width,
+                                height: height,
+                                index: index,
+                                figureNotifier: _buttonNotifiers[index],
+                                onPress: () {
+                                  // Check if the game is not over before making a player user move
+                                  if (!gameLogic.isGameOver()) {
+                                    playerMove(index);
+                                    //log(gameLogic.board.toString());
+                                  }
+                                },
+                              ),
+                            );
+                          });
                     },
                   ),
                   buildWinnerLine(width, height),

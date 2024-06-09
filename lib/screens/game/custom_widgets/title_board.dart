@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tic_tac_toe/screens/game/custom_widgets/animations/value_text_animation.dart';
+import 'package:tic_tac_toe/screens/game/progress_time.dart';
 
 class TitleBoard extends StatelessWidget {
   const TitleBoard({
@@ -8,12 +9,14 @@ class TitleBoard extends StatelessWidget {
     required this.height,
     required this.playerTurnsWon,
     required this.iaTurnsWon,
+    required this.isProgressRunning,
   });
 
   final double width;
   final double height;
   final ValueNotifier<int> playerTurnsWon;
   final ValueNotifier<int> iaTurnsWon;
+  final ValueNotifier<bool> isProgressRunning;
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +44,26 @@ class TitleBoard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.values[5],
             children: [
               ValueTextAnimation(valueNotifier: playerTurnsWon),
-              const Text(
-                '-',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
+              Stack(
+                children: [
+                  ScaleTransition(
+                    scale: const AlwaysStoppedAnimation(0.6),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: ProgressWidget(
+                        isProgressRunning: isProgressRunning,
+                      ),
+                    ),
+                  ),
+                  /*Text(
+                    '-',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),*/
+                ],
               ),
               ValueTextAnimation(valueNotifier: iaTurnsWon),
             ],
