@@ -12,6 +12,24 @@ class CustomConfetti extends StatefulWidget {
 class _CustomConfettiState extends State<CustomConfetti> {
   final _confettiController =
       ConfettiController(duration: const Duration(seconds: 1));
+  final starsPath = Path()
+    ..moveTo(0, 0)
+    ..lineTo(10, 10)
+    ..lineTo(20, 10)
+    ..lineTo(12, 20)
+    ..lineTo(15, 30)
+    ..lineTo(0, 24)
+    ..lineTo(-15, 30)
+    ..lineTo(-12, 20)
+    ..lineTo(-20, 10)
+    ..lineTo(-10, 10)
+    ..close();
+  final circlePath = Path()
+    ..addOval(Rect.fromCircle(center: const Offset(0, 0), radius: 10));
+  final squarePath = Path()
+    ..addRect(
+        Rect.fromCenter(center: const Offset(0, 0), width: 20, height: 20));
+
   @override
   void initState() {
     Future.delayed(const Duration(milliseconds: 600), () {
@@ -23,24 +41,6 @@ class _CustomConfettiState extends State<CustomConfetti> {
   @override
   Widget build(BuildContext context) {
     final randomParticles = Random().nextInt(40) + 10;
-    final starsPath = Path()
-      ..moveTo(0, 0)
-      ..lineTo(10, 10)
-      ..lineTo(20, 10)
-      ..lineTo(12, 20)
-      ..lineTo(15, 30)
-      ..lineTo(0, 24)
-      ..lineTo(-15, 30)
-      ..lineTo(-12, 20)
-      ..lineTo(-20, 10)
-      ..lineTo(-10, 10)
-      ..close();
-    final circlePath = Path()
-      ..addOval(Rect.fromCircle(center: const Offset(0, 0), radius: 10));
-    final squarePath = Path()
-      ..addRect(
-          Rect.fromCenter(center: const Offset(0, 0), width: 20, height: 20));
-
     //random path
     final randomPath = Random().nextBool()
         ? starsPath

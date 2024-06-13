@@ -47,7 +47,7 @@ class TitleBoard extends StatelessWidget {
               Stack(
                 children: [
                   ScaleTransition(
-                    scale: const AlwaysStoppedAnimation(0.6),
+                    scale: const AlwaysStoppedAnimation(0.7),
                     child: Align(
                       alignment: Alignment.topCenter,
                       child: ProgressWidget(
@@ -55,14 +55,6 @@ class TitleBoard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  /*Text(
-                    '-',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),*/
                 ],
               ),
               ValueTextAnimation(valueNotifier: iaTurnsWon),

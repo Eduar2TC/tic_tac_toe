@@ -44,6 +44,7 @@ class _GameState extends State<Game> {
   bool playerWinner = false;
   //handle the progress of the game
   final ValueNotifier<bool> isProgressRunning = ValueNotifier(false);
+  bool _buttonPressed = false;
   @override
   void didChangeDependencies() {
     userFigure = ModalRoute.of(context)?.settings.arguments as Figure;
@@ -67,18 +68,65 @@ class _GameState extends State<Game> {
         }
       },
     );
-    // Listen time progress if it ends , TODO: fix interaction
+
     isProgressRunning.addListener(() {
       notifierGameOver.value = !isProgressRunning.value;
+      log('isProgressRunning : ${isProgressRunning.value} , isFirstGame : $isFirstGame , turn.value: ${turn.value}, notifierGameOver: ${notifierGameOver.value} ');
     });
+
+    void checkConditions() {
+      if (notifierGameOver.value == false) {
+        if (!_buttonPressed &&
+            ((!isProgressRunning.value &&
+                    !isFirstGame &&
+                    turn.value == Turn.userPlayer &&
+                    notifierGameOver.value) ||
+                (!isProgressRunning.value &&
+                    isFirstGame &&
+                    turn.value == Turn.iaPlayer &&
+                    !notifierGameOver.value)) &&
+            turn.value == Turn.iaPlayer) {
+          log('xxx');
+          _iaTurnsWon.value++;
+        }
+      } else if (notifierGameOver.value == true &&
+          !isProgressRunning.value &&
+          turn.value == Turn.userPlayer) {
+        if (!_buttonPressed) {
+          if (!isFirstGame && turn.value == Turn.userPlayer ||
+              isFirstGame && turn.value == Turn.iaPlayer) {
+            log('zzz');
+            _iaTurnsWon.value++;
+          }
+        }
+      } else if (notifierGameOver.value == true &&
+          !isProgressRunning.value &&
+          turn.value == Turn.iaPlayer) {
+        if (!_buttonPressed) {
+          if (!isFirstGame && turn.value == Turn.iaPlayer ||
+              isFirstGame && turn.value == Turn.userPlayer) {
+            log('yyy');
+            _iaTurnsWon.value++;
+          }
+        }
+      }
+    }
+
+    notifierGameOver.addListener(checkConditions);
     super.initState();
   }
 
   void decideTurn() {
-    turn.value == Turn.iaPlayer ? iaTurn() : null;
+    turn.value == Turn.iaPlayer ? iaTurn() : playerTurn();
+  }
+
+  void playerTurn() {
+    turn.value = Turn.userPlayer;
+    isProgressRunning.value = true;
   }
 
   void iaTurn() {
+    turn.value = Turn.iaPlayer;
     if (gameLogic.isMovesLeft()) {
       Move bestMove = gameLogic.findBestMove();
       int aiIndex = bestMove.row * 3 + bestMove.col;
@@ -98,12 +146,10 @@ class _GameState extends State<Game> {
     }
     _winningLineNotifier.value = null;
     notifierGameOver.value = false;
-    isProgressRunning.value = true;
     if (playerWinner) {
-      turn.value = Turn.iaPlayer;
       iaTurn();
     } else {
-      turn.value = Turn.userPlayer;
+      playerTurn();
     }
   }
 
@@ -114,9 +160,12 @@ class _GameState extends State<Game> {
   }
 
   void playerMove(int index) {
+    _buttonPressed = true;
     log('playerMove called. index: $index');
     gameLogic.updateBoard(index, 1);
     _buttonNotifiers[index].value = userFigure;
+    isProgressRunning.value = false;
+    isProgressRunning.value = true;
 
     if (gameLogic.isGameOver()) {
       log('Player Win');
@@ -127,16 +176,18 @@ class _GameState extends State<Game> {
           _winningLineNotifier.value = winningLine;
           _playerTurnsWon.value++;
         });
+        playerWinner = true;
         Future.delayed(const Duration(milliseconds: 1000), () {
           notifierGameOver.value = true;
         });
-        playerWinner = true;
+        isProgressRunning.value = false;
       }
     } else if (gameLogic.isMovesLeft()) {
       Move bestMove = gameLogic.findBestMove();
       int aiIndex = bestMove.row * 3 + bestMove.col;
       aiMove(aiIndex);
     }
+    _buttonPressed = false;
   }
 
   void aiMove(int index) {
@@ -145,6 +196,8 @@ class _GameState extends State<Game> {
       Future.delayed(const Duration(milliseconds: 500), () {
         _buttonNotifiers[index].value = iaFigure;
       });
+      isProgressRunning.value = false;
+      isProgressRunning.value = true;
     }
     if (gameLogic.isGameOver()) {
       log('Ia Win');
@@ -155,10 +208,12 @@ class _GameState extends State<Game> {
           _winningLineNotifier.value = winningLine;
           _iaTurnsWon.value++;
         });
+        playerWinner = false;
         Future.delayed(const Duration(milliseconds: 1000), () {
           notifierGameOver.value = true;
         });
-        playerWinner = false;
+
+        isProgressRunning.value = false;
       }
     }
   }
@@ -225,28 +280,25 @@ class _GameState extends State<Game> {
                     itemBuilder: (BuildContext context, int index) {
                       buttonKeys[index] = GlobalKey<BtnCreatorState>();
                       //element of grid
-                      return ValueListenableBuilder(
-                          valueListenable: isProgressRunning,
-                          builder: (context, isRunning, _) {
-                            return IgnorePointer(
-                              ignoring:
-                                  !isRunning, //ignore if the progress is not running
-                              child: BtnCreator(
-                                key: buttonKeys[index],
-                                width: width,
-                                height: height,
-                                index: index,
-                                figureNotifier: _buttonNotifiers[index],
-                                onPress: () {
-                                  // Check if the game is not over before making a player user move
-                                  if (!gameLogic.isGameOver()) {
-                                    playerMove(index);
-                                    //log(gameLogic.board.toString());
-                                  }
-                                },
-                              ),
-                            );
-                          });
+                      return IgnorePointer(
+                        ignoring: turn.value == Turn.iaPlayer &&
+                            isProgressRunning
+                                .value, //TODO: ignore if the progress is not running
+                        child: BtnCreator(
+                          key: buttonKeys[index],
+                          width: width,
+                          height: height,
+                          index: index,
+                          figureNotifier: _buttonNotifiers[index],
+                          onPress: () {
+                            // Check if the game is not over before making a player user move
+                            if (!gameLogic.isGameOver()) {
+                              playerMove(index);
+                              //log(gameLogic.board.toString());
+                            }
+                          },
+                        ),
+                      );
                     },
                   ),
                   buildWinnerLine(width, height),
