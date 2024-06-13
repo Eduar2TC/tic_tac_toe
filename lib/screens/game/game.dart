@@ -68,52 +68,49 @@ class _GameState extends State<Game> {
         }
       },
     );
-
+    //listener to the progress of the game
     isProgressRunning.addListener(() {
       notifierGameOver.value = !isProgressRunning.value;
       log('isProgressRunning : ${isProgressRunning.value} , isFirstGame : $isFirstGame , turn.value: ${turn.value}, notifierGameOver: ${notifierGameOver.value} ');
     });
+    //verify if the time is over for user player
+    notifierGameOver.addListener(playerTurnLost);
+    super.initState();
+  }
 
-    void checkConditions() {
-      if (notifierGameOver.value == false) {
-        if (!_buttonPressed &&
-            ((!isProgressRunning.value &&
-                    !isFirstGame &&
-                    turn.value == Turn.userPlayer &&
-                    notifierGameOver.value) ||
-                (!isProgressRunning.value &&
-                    isFirstGame &&
-                    turn.value == Turn.iaPlayer &&
-                    !notifierGameOver.value)) &&
-            turn.value == Turn.iaPlayer) {
-          log('xxx');
+  void playerTurnLost() {
+    if (notifierGameOver.value == false) {
+      if (!_buttonPressed &&
+          ((!isProgressRunning.value &&
+                  !isFirstGame &&
+                  turn.value == Turn.userPlayer &&
+                  notifierGameOver.value) ||
+              (!isProgressRunning.value &&
+                  isFirstGame &&
+                  turn.value == Turn.iaPlayer &&
+                  !notifierGameOver.value)) &&
+          turn.value == Turn.iaPlayer) {
+        _iaTurnsWon.value++;
+      }
+    } else if (notifierGameOver.value == true &&
+        !isProgressRunning.value &&
+        turn.value == Turn.userPlayer) {
+      if (!_buttonPressed) {
+        if (!isFirstGame && turn.value == Turn.userPlayer ||
+            isFirstGame && turn.value == Turn.iaPlayer) {
           _iaTurnsWon.value++;
         }
-      } else if (notifierGameOver.value == true &&
-          !isProgressRunning.value &&
-          turn.value == Turn.userPlayer) {
-        if (!_buttonPressed) {
-          if (!isFirstGame && turn.value == Turn.userPlayer ||
-              isFirstGame && turn.value == Turn.iaPlayer) {
-            log('zzz');
-            _iaTurnsWon.value++;
-          }
-        }
-      } else if (notifierGameOver.value == true &&
-          !isProgressRunning.value &&
-          turn.value == Turn.iaPlayer) {
-        if (!_buttonPressed) {
-          if (!isFirstGame && turn.value == Turn.iaPlayer ||
-              isFirstGame && turn.value == Turn.userPlayer) {
-            log('yyy');
-            _iaTurnsWon.value++;
-          }
+      }
+    } else if (notifierGameOver.value == true &&
+        !isProgressRunning.value &&
+        turn.value == Turn.iaPlayer) {
+      if (!_buttonPressed) {
+        if (!isFirstGame && turn.value == Turn.iaPlayer ||
+            isFirstGame && turn.value == Turn.userPlayer) {
+          _iaTurnsWon.value++;
         }
       }
     }
-
-    notifierGameOver.addListener(checkConditions);
-    super.initState();
   }
 
   void decideTurn() {
@@ -230,7 +227,7 @@ class _GameState extends State<Game> {
               size: Size(width, height / 2),
             );
           } else {
-            return Container(); // return an empty container when there's no winning line
+            return Container();
           }
         },
       ),
@@ -327,9 +324,7 @@ class _GameState extends State<Game> {
                     builder: (context, gameOver, _) => gameOver
                         ? GameOverMessage(
                             //add emoji to the message
-                            message: playerWinner
-                                ? '¡You Win! 🏆'
-                                : '¡You Loose! 😞',
+                            message: playerWinner ? '¡You Win!' : '¡You Lose!',
                           )
                         : Container(),
                   ),

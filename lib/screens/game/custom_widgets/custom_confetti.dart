@@ -40,13 +40,17 @@ class _CustomConfettiState extends State<CustomConfetti> {
 
   @override
   Widget build(BuildContext context) {
-    final randomParticles = Random().nextInt(40) + 10;
+    int randomParticles = Random().nextInt(40) + 10;
     //random path
     final randomPath = Random().nextBool()
         ? starsPath
         : Random().nextBool()
             ? circlePath
             : squarePath;
+    //if randomPath is starsPath, delimit random particles to 20
+    if (randomPath == starsPath) {
+      randomParticles < 5 ? randomParticles = 10 : randomParticles;
+    }
     return ConfettiWidget(
       confettiController: _confettiController,
       blastDirectionality: BlastDirectionality.explosive,

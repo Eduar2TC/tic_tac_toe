@@ -1,3 +1,5 @@
+import 'package:animated_emoji/emoji.dart';
+import 'package:animated_emoji/emojis.g.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tic_tac_toe/screens/game/custom_widgets/custom_confetti.dart';
@@ -11,23 +13,23 @@ class GameOverMessage extends StatefulWidget {
 }
 
 class _GameOverMessageState extends State<GameOverMessage> {
-  final String winner = '¡You Win! 🏆';
-  bool isAnimated = false;
+  final String winner = '¡You Win!';
+  bool _isAnimated = false;
 
   @override
   void initState() {
     super.initState();
     //fix delay problems in game over message (game screen)
-    Future.delayed(const Duration(milliseconds: 1600), () {
+    Future.delayed(const Duration(milliseconds: 1300), () {
       setState(() {
-        isAnimated = true;
+        _isAnimated = true;
       });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return isAnimated
+    return _isAnimated
         ? TweenAnimationBuilder(
             duration: const Duration(milliseconds: 1000),
             tween: Tween<double>(begin: 0, end: 1),
@@ -36,7 +38,7 @@ class _GameOverMessageState extends State<GameOverMessage> {
               return Transform.scale(
                 scale: value,
                 child: Container(
-                  padding: const EdgeInsets.all(50),
+                  padding: const EdgeInsets.all(30),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(1),
                     borderRadius: BorderRadius.circular(20),
@@ -45,17 +47,33 @@ class _GameOverMessageState extends State<GameOverMessage> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        Text(
-                          widget.message,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.seymourOne(
-                            textStyle: const TextStyle(
-                              fontSize: 40,
-                              color: Colors.deepPurpleAccent,
-                              fontWeight: FontWeight.w400,
-                              letterSpacing: .2,
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              widget.message,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.seymourOne(
+                                textStyle: const TextStyle(
+                                  fontSize: 40,
+                                  color: Colors.deepPurpleAccent,
+                                  fontWeight: FontWeight.w400,
+                                  letterSpacing: .2,
+                                ),
+                              ),
                             ),
-                          ),
+                            widget.message == winner
+                                ? const AnimatedEmoji(
+                                    AnimatedEmojis.partyPopper,
+                                    size: 80,
+                                    repeat: false,
+                                  )
+                                : const AnimatedEmoji(
+                                    AnimatedEmojis.sad,
+                                    size: 80,
+                                    repeat: false,
+                                  )
+                          ],
                         ),
                         widget.message == winner
                             ? const CustomConfetti()
