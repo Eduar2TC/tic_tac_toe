@@ -22,4 +22,14 @@ class GameLogic {
   bool isGameOver() {
     return ia.isGameOver(board);
   }
+
+  bool isDraw() {
+    log('Checking if it\'s a draw');
+    // Check if no moves left and game is over
+    if (!isMovesLeft() && isGameOver()) {
+      log('It\'s a draw');
+      return true;
+    }
+    return false;
+  }
 }

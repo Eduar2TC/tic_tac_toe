@@ -1,7 +1,6 @@
-import 'package:animated_emoji/emoji.dart';
-import 'package:animated_emoji/emojis.g.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:tic_tac_toe/screens/game/custom_widgets/custom_confetti.dart';
 
 class GameOverMessage extends StatefulWidget {
@@ -14,6 +13,7 @@ class GameOverMessage extends StatefulWidget {
 
 class _GameOverMessageState extends State<GameOverMessage> {
   final String winner = '¡You Win!';
+  final String loser = '¡You Lose!';
   bool _isAnimated = false;
 
   @override
@@ -63,16 +63,22 @@ class _GameOverMessageState extends State<GameOverMessage> {
                               ),
                             ),
                             widget.message == winner
-                                ? const AnimatedEmoji(
-                                    AnimatedEmojis.partyPopper,
-                                    size: 80,
+                                ? Lottie.asset(
+                                    'lib/assets/animated_emoji/party_popper.json',
+                                    width: 80,
                                     repeat: false,
                                   )
-                                : const AnimatedEmoji(
-                                    AnimatedEmojis.sad,
-                                    size: 80,
-                                    repeat: false,
-                                  )
+                                : widget.message == loser
+                                    ? Lottie.asset(
+                                        'lib/assets/animated_emoji/sad.json',
+                                        width: 80,
+                                        repeat: false,
+                                      )
+                                    : Lottie.asset(
+                                        'lib/assets/animated_emoji/neutral.json',
+                                        width: 80,
+                                        repeat: true,
+                                      ),
                           ],
                         ),
                         widget.message == winner

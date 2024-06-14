@@ -10,8 +10,9 @@ class CustomConfetti extends StatefulWidget {
 }
 
 class _CustomConfettiState extends State<CustomConfetti> {
-  final _confettiController =
-      ConfettiController(duration: const Duration(seconds: 1));
+  final _confettiController = ConfettiController(
+    duration: const Duration(seconds: 1),
+  );
   final starsPath = Path()
     ..moveTo(0, 0)
     ..lineTo(10, 10)
@@ -47,9 +48,9 @@ class _CustomConfettiState extends State<CustomConfetti> {
         : Random().nextBool()
             ? circlePath
             : squarePath;
-    //if randomPath is starsPath, delimit random particles to 20
+    //if randomPath is starsPath, delimit random particles to 15
     if (randomPath == starsPath) {
-      randomParticles < 5 ? randomParticles = 10 : randomParticles;
+      randomParticles = Random().nextInt(10) + 10;
     }
     return ConfettiWidget(
       confettiController: _confettiController,

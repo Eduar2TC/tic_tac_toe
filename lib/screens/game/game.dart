@@ -14,6 +14,8 @@ import 'ia_logic/ia_game.dart';
 import 'dart:math' as math;
 import 'dart:developer';
 
+enum GameResult { playerWinner, aiWinner, draw, neutral }
+
 enum Turn {
   userPlayer,
   iaPlayer,
@@ -32,6 +34,7 @@ class _GameState extends State<Game> {
   final GameLogic gameLogic = GameLogic();
   late Figure userFigure;
   late Figure iaFigure;
+  late GameResult gameResult;
   late final ValueNotifier<WinningLine?> _winningLineNotifier =
       ValueNotifier<WinningLine?>(
           null); // ValueNotifier to notify the winning line
@@ -41,7 +44,6 @@ class _GameState extends State<Game> {
   late final ValueNotifier<int> _iaTurnsWon = ValueNotifier<int>(0);
   late final notifierGameOver = ValueNotifier<bool>(false);
   bool isFirstGame = true;
-  bool playerWinner = false;
   //handle the progress of the game
   final ValueNotifier<bool> isProgressRunning = ValueNotifier(false);
   bool _buttonPressed = false;
@@ -91,6 +93,7 @@ class _GameState extends State<Game> {
                   !notifierGameOver.value)) &&
           turn.value == Turn.iaPlayer) {
         _iaTurnsWon.value++;
+        gameResult = GameResult.aiWinner;
       }
     } else if (notifierGameOver.value == true &&
         !isProgressRunning.value &&
@@ -99,6 +102,7 @@ class _GameState extends State<Game> {
         if (!isFirstGame && turn.value == Turn.userPlayer ||
             isFirstGame && turn.value == Turn.iaPlayer) {
           _iaTurnsWon.value++;
+          gameResult = GameResult.aiWinner;
         }
       }
     } else if (notifierGameOver.value == true &&
@@ -108,6 +112,7 @@ class _GameState extends State<Game> {
         if (!isFirstGame && turn.value == Turn.iaPlayer ||
             isFirstGame && turn.value == Turn.userPlayer) {
           _iaTurnsWon.value++;
+          gameResult = GameResult.aiWinner;
         }
       }
     }
@@ -143,11 +148,12 @@ class _GameState extends State<Game> {
     }
     _winningLineNotifier.value = null;
     notifierGameOver.value = false;
-    if (playerWinner) {
+    if (gameResult == GameResult.playerWinner) {
       iaTurn();
     } else {
       playerTurn();
     }
+    gameResult = GameResult.neutral;
   }
 
   void updateBoard(int index, int player) {
@@ -164,6 +170,13 @@ class _GameState extends State<Game> {
     isProgressRunning.value = false;
     isProgressRunning.value = true;
 
+    if (gameLogic.isDraw()) {
+      gameResult = GameResult.draw;
+      Future.delayed(const Duration(milliseconds: 500), () {
+        notifierGameOver.value = true;
+      });
+      isProgressRunning.value = false;
+    }
     if (gameLogic.isGameOver()) {
       log('Player Win');
       WinningLine? winningLine = getWinningLine(gameLogic.board);
@@ -173,7 +186,8 @@ class _GameState extends State<Game> {
           _winningLineNotifier.value = winningLine;
           _playerTurnsWon.value++;
         });
-        playerWinner = true;
+
+        gameResult = GameResult.playerWinner;
         Future.delayed(const Duration(milliseconds: 1000), () {
           notifierGameOver.value = true;
         });
@@ -184,6 +198,7 @@ class _GameState extends State<Game> {
       int aiIndex = bestMove.row * 3 + bestMove.col;
       aiMove(aiIndex);
     }
+
     _buttonPressed = false;
   }
 
@@ -205,13 +220,19 @@ class _GameState extends State<Game> {
           _winningLineNotifier.value = winningLine;
           _iaTurnsWon.value++;
         });
-        playerWinner = false;
+        gameResult = GameResult.aiWinner;
         Future.delayed(const Duration(milliseconds: 1000), () {
           notifierGameOver.value = true;
         });
-
         isProgressRunning.value = false;
       }
+    }
+    if (gameLogic.isDraw()) {
+      gameResult = GameResult.draw;
+      Future.delayed(const Duration(milliseconds: 500), () {
+        notifierGameOver.value = true;
+      });
+      isProgressRunning.value = false;
     }
   }
 
@@ -238,7 +259,7 @@ class _GameState extends State<Game> {
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
     final double height = MediaQuery.of(context).size.height;
-    //make grid of buttons
+    //grid of buttons
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.all(20),
@@ -291,7 +312,6 @@ class _GameState extends State<Game> {
                             // Check if the game is not over before making a player user move
                             if (!gameLogic.isGameOver()) {
                               playerMove(index);
-                              //log(gameLogic.board.toString());
                             }
                           },
                         ),
@@ -324,7 +344,12 @@ class _GameState extends State<Game> {
                     builder: (context, gameOver, _) => gameOver
                         ? GameOverMessage(
                             //add emoji to the message
-                            message: playerWinner ? '¡You Win!' : '¡You Lose!',
+                            message: gameResult ==
+                                    GameResult.playerWinner //TODO: refact this
+                                ? '¡You Win!'
+                                : gameResult == GameResult.draw
+                                    ? '¡It\'s a Draw!'
+                                    : '¡You Lose!',
                           )
                         : Container(),
                   ),
